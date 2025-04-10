@@ -2,8 +2,6 @@ package com.example.biblioteca.dtos;
 
 import lombok.*;
 
-import java.util.List;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -12,5 +10,4 @@ import java.util.List;
 public class AuthorDTO {
     private Long id;
     private String name;
-    private List<Long> bookIds;
 }

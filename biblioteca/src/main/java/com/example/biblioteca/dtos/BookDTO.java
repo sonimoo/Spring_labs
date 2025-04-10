@@ -8,10 +8,11 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class BookDTO {
     private Long id;
     private String title;
     private Long authorId;
     private Long publisherId;
-    private List<Long> categoryIds;
+    private List<Long> categoryIds; // ВСЕГДА пустой массив
 }

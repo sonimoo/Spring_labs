@@ -1,60 +1,59 @@
 package com.example.biblioteca.services;
 
+import com.example.biblioteca.daos.AuthorDao;
 import com.example.biblioteca.dtos.AuthorDTO;
 import com.example.biblioteca.entities.Author;
-import com.example.biblioteca.repositories.AuthorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
 public class AuthorService {
-    private final AuthorRepository authorRepository;
+    private final AuthorDao authorDao;
 
     public List<AuthorDTO> getAllAuthors() {
-        return authorRepository.findAll().stream().map(this::convertToDTO).collect(Collectors.toList());
+        return authorDao.findAll().stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
     public AuthorDTO getAuthorById(Long id) {
-        return authorRepository.findById(id).map(this::convertToDTO)
-                .orElseThrow(() -> new RuntimeException("Author not found"));
+        Author author = authorDao.findById(id);
+        if (author == null) {
+            throw new RuntimeException("Author not found");
+        }
+        return convertToDTO(author);
     }
 
     public AuthorDTO createAuthor(AuthorDTO authorDTO) {
-        Author author = new Author();
-        author.setName(authorDTO.getName());
-        author.setBooks(Collections.emptyList()); // ✅ Устанавливаем пустой список, чтобы избежать NPE
-        author = authorRepository.save(author);
+        Author author = convertToEntity(authorDTO);
+        authorDao.save(author);
         return convertToDTO(author);
     }
 
     public AuthorDTO updateAuthor(Long id, AuthorDTO authorDTO) {
-        Author author = authorRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Author not found"));
-
+        Author author = authorDao.findById(id);
+        if (author == null) {
+            throw new RuntimeException("Author not found");
+        }
         author.setName(authorDTO.getName());
-        author = authorRepository.save(author);
+        authorDao.update(author);
         return convertToDTO(author);
     }
 
     public void deleteAuthor(Long id) {
-        if (!authorRepository.existsById(id)) {
-            throw new RuntimeException("Author not found");
-        }
-        authorRepository.deleteById(id);
+        authorDao.delete(id);
     }
 
     private AuthorDTO convertToDTO(Author author) {
         return AuthorDTO.builder()
                 .id(author.getId())
                 .name(author.getName())
-                .bookIds(author.getBooks() != null
-                        ? author.getBooks().stream().map(book -> book.getId()).collect(Collectors.toList())
-                        : Collections.emptyList()) // ✅ Если books == null, вернем пустой список
                 .build();
+    }
+
+    private Author convertToEntity(AuthorDTO authorDTO) {
+        return new Author(null, authorDTO.getName());
     }
 }
